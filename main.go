@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	minInterval = 60
-	maxInterval = 900
-	defaultUrl  = "https://www.google.com/"
+	minInterval    = 60
+	maxInterval    = 900
+	defaultUrl     = "https://www.google.com/"
+	requestTimeout = 30
 )
 
 func prepareProxyClient(proxyUrl string) (*http.Client, error) {
@@ -47,6 +48,8 @@ func fetchTime(proxyUrl string, targetUrl string) (parsed time.Time, err error) 
 	if err != nil {
 		return
 	}
+
+	client.Timeout = requestTimeout * time.Second
 
 	req, err := http.NewRequest("GET", targetUrl, nil)
 	if err != nil {
