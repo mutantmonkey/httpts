@@ -22,7 +22,7 @@ const (
 	requestTimeout = 30
 )
 
-func prepareProxyClient(proxyUrl string) (*http.Client, error) {
+func prepareProxyTransport(proxyUrl string) (*http.Transport, error) {
 	var dialer proxy.Dialer
 
 	dialer = proxy.Direct
@@ -40,25 +40,23 @@ func prepareProxyClient(proxyUrl string) (*http.Client, error) {
 	}
 
 	transport := &http.Transport{Dial: dialer.Dial}
-	return &http.Client{Transport: transport}, nil
+	return transport, nil
 }
 
 func fetchTime(proxyUrl string, targetUrl string) (parsed time.Time, err error) {
-	client, err := prepareProxyClient(proxyUrl)
+	transport, err := prepareProxyTransport(proxyUrl)
 	if err != nil {
 		return
 	}
 
-	client.Timeout = requestTimeout * time.Second
-
-	req, err := http.NewRequest("GET", targetUrl, nil)
-	if err != nil {
-		return
+	client := &http.Client{
+		Transport: transport,
+		Timeout: requestTimeout * time.Second,
 	}
 
 	log.Printf("Start request to %q", targetUrl)
 
-	resp, err := client.Do(req)
+	resp, err := client.Get(targetUrl)
 	if err != nil {
 		return
 	}
